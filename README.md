@@ -2,7 +2,7 @@
 
 This repo has a Ruby wrapper around the Steam TF2 API, as well as an example app which uses the wrapper for doing some fun things with duplicate items.
 
-You will need a Steam API key. You can grab one from (http://steamcommunity.com/dev/apikey)[http://steamcommunity.com/dev/apikey].
+You will need a Steam API key. You can grab one from [http://steamcommunity.com/dev/apikey](http://steamcommunity.com/dev/apikey).
 Copy it to a file named 'apikey' in the project directory (or replace the File.read call in tf2api.rb).
 
 Try `ruby duplicates.rb --accounts=[YOURSTEAMID] --scrap` to calculate the optimal combination of scrapping your duplicates.
