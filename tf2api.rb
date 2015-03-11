@@ -77,7 +77,7 @@ class Schema
   @@ClassOrder = ["All", "Scout", "Sniper", "Soldier", "Demoman", "Medic",
                   "Heavy", "Pyro", "Spy", "Engineer"]
 
-  @@ClassRoleOrder = ["Scout", "Soldier", "Pyro", "Demoman", "Heavy", 
+  @@ClassRoleOrder = ["Scout", "Soldier", "Pyro", "Demoman", "Heavy",
                       "Engineer", "Medic", "Sniper", "Spy"]
 
   @@SlotOrder = ["none", "primary", "secondary", "melee", "pda",
@@ -150,7 +150,12 @@ class SteamID
 
   def update_items
     response = WebAPI.call("IEconItems_440", "GetPlayerItems", 1, "SteamID" => @steamid)["result"]
-    items = (response ? response["items"] : []).map{|i| PlayerItem.new(i)}
+    if !response || response["status"] == 15
+        items = []
+        $stderr.puts("log:[Couldn't fetch items for #{@steamid}]")
+    else
+        items = response["items"].map{|i| PlayerItem.new(i)}
+    end
     @items = ItemSet[items]
   end
 end
@@ -163,8 +168,8 @@ class Item
   def [](i); @item[i]; end
 
   def name
-    ((self["proper_name"]) ? "The " : "") + 
-      ((quality?("N") || quality?("U")) ? "" : "#{quality_name} ") + 
+    ((self["proper_name"]) ? "The " : "") +
+      ((quality?("N") || quality?("U")) ? "" : "#{quality_name} ") +
       base_name
   end
 
@@ -219,7 +224,8 @@ class Item
     8 => %w(Valve *),
     9 => %w(Self-made ^),
     11 => %w(Strange S),
-    13 => %w(Haunted H)
+    13 => %w(Haunted H),
+    255 => %w(Powerup P)
   }
 end
 
@@ -246,15 +252,15 @@ end
 class ItemSet
   include Enumerable
 
-  [:find_all, :select, :reject, :sort, :sort_by, :take, :take_while, 
+  [:find_all, :select, :reject, :sort, :sort_by, :take, :take_while,
     :drop, :drop_while, :concat, :+, :<<, :grep, :delete_at, :clone, :dup].each{|method|
     define_method method do |*args, &block|
       ItemSet[@items.send(method, *args, &block)]
     end
   }
 
-  [:each, :size, :empty?, :to_a, :to_ary, :entries, :[], :any?, 
-    :all?, :pop, :collect, :map, :collect_concat, :flat_map, :count, 
+  [:each, :size, :empty?, :to_a, :to_ary, :entries, :[], :any?,
+    :all?, :pop, :collect, :map, :collect_concat, :flat_map, :count,
     :detect, :find, :first, :find_index, :index, :include?, :inject, :max,
     :max_by, :min, :min_by, :minmax, :minmax_by, :none?, :one?, :reduce, :zip].each{|method|
     define_method method do |*args, &block|
@@ -326,7 +332,7 @@ class ItemSet
         return result
       end
     end
-    
+
     byclass = sort_by{|i| i.name}.group_by{|i| Set.new(i.classes.map{|c| c.to_sym})}
 
     combs = helper(Hash[byclass.map{|w,ws| [w, ws.size]}])

@@ -62,7 +62,10 @@ puts "Finding Steam accounts".title
 accounts = options[:accounts].map{|i| SteamID[i]}.compact
 
 puts "\n" + "Getting items".title
-weapons = accounts.map(&:items).inject(&:+).select(&:weapon?)
+items = accounts.map(&:items).inject(&:+)
+puts "\n" + "Total number of items: #{items.size}"
+weapons = items.select(&:weapon?)
+puts "\n" + "Total number of weapons: #{weapons.size}"
 
 trade = Hash[
   weapons.duplicates.select{ |_, items| items.any?(&:will_trade?) }.map do |base_item, items|
@@ -71,6 +74,8 @@ trade = Hash[
     [base_item, tradable]
   end
 ]
+
+puts "\n" + "Total number of tradeable weapons: #{trade.values.flatten.size}"
 
 if(options[:list])
   puts "\n" + "Duplicate Lists".title
